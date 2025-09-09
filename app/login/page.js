@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../../lib/supabase/client";
+import { getSupabase } from "../../lib/supabase/client";
 
 export default function LoginPage() {
   const [mode, setMode] = useState("signin"); // or "signup"
@@ -16,6 +16,11 @@ export default function LoginPage() {
     setLoading(true);
     setMessage(null);
     try {
+      const supabase = getSupabase();
+      if (!supabase) {
+        setMessage("Supabase env vars are not set. Add them to .env and Vercel.");
+        return;
+      }
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
           email: form.email,
@@ -111,4 +116,3 @@ export default function LoginPage() {
     </div>
   );
 }
-

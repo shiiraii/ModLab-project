@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { supabase } from "../../lib/supabase/client";
+import { getSupabase } from "../../lib/supabase/client";
 
 const SERVICES = [
   { id: "switch-replacement", label: "Switch Replacement" },
@@ -13,7 +13,7 @@ const SERVICES = [
   { id: "skate-install", label: "Skate Install (PTFE/Glass)" },
 ];
 
-export default function BookPage() {
+function BookingContent() {
   const params = useSearchParams();
   const preselect = params.get("service") ?? "";
   const [user, setUser] = useState(null);
@@ -36,11 +36,13 @@ export default function BookPage() {
   }, [preselect]);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const s = getSupabase();
+    if (!s) return; // allow page to render without crashing if env missing
+    s.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
+    const { data: sub } = s.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => sub?.subscription?.unsubscribe();
   }, []);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -68,6 +70,11 @@ export default function BookPage() {
     }
     setSaving(true);
     try {
+      const s = getSupabase();
+      if (!s) {
+        setMsg("Supabase env vars are not set. Add them to .env and Vercel.");
+        return;
+      }
       const payload = {
         user_id: user.id,
         service_id: form.service || null,
@@ -77,7 +84,7 @@ export default function BookPage() {
         notes: form.notes,
         appointment_at: appointmentISO,
       };
-      const { error } = await supabase.from("bookings").insert(payload);
+      const { error } = await s.from("bookings").insert(payload);
       if (error) throw error;
       setMsg("Booking request submitted! We’ll email you a confirmation.");
       setForm({ service: preselect, date: "", time: "", name: "", email: "", phone: "", notes: "" });
@@ -210,3 +217,10 @@ export default function BookPage() {
   );
 }
 
+export default function BookPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-2xl px-4 py-10">Loading…</div>}>
+      <BookingContent />
+    </Suspense>
+  );
+}
