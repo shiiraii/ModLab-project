@@ -7,10 +7,15 @@ export const metadata = {
   description: "Custom Mouse Mods & Accessories",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-neutral-100 text-neutral-900">
+      <body className="bg-neutral-100 text-neutral-900 font-sans antialiased">
         {/* Header / Nav */}
         <SiteHeader />
 
