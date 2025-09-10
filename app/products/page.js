@@ -1,3 +1,6 @@
+import AddToCartButton from "../../components/AddToCartButton";
+import { formatPrice } from "../../lib/products/data";
+
 export default function ProductsPage() {
   return (
     <div className="">
@@ -21,9 +24,7 @@ export default function ProductsPage() {
               Compatible with most gaming mice.
             </p>
             <div className="mt-4">
-              <a href="#" className="inline-flex items-center rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800">
-                Add To cart
-              </a>
+              <AddToCartButton id="ptfe-skates" label={`Add To Cart (${formatPrice(1099)})`} />
             </div>
           </div>
           <div className="order-first md:order-none">
@@ -38,9 +39,7 @@ export default function ProductsPage() {
             <h2 className="text-xl md:text-2xl font-semibold">Glass Skates - $14.99</h2>
             <p className="mt-3 text-neutral-600">A subheading for this section, as long or as short as you like</p>
             <div className="mt-4">
-              <a href="#" className="inline-flex items-center rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800">
-                Add To Cart
-              </a>
+              <AddToCartButton id="glass-skates" label={`Add To Cart (${formatPrice(1499)})`} />
             </div>
           </div>
           <div>
@@ -77,6 +76,9 @@ export default function ProductsPage() {
                     Ultra-flexible, lightweight paracord cable that eliminates cable drag. Available in
                     multiple colors.
                   </p>
+                  <div className="mt-2">
+                    <AddToCartButton id="paracord-cable" label={`Add To Cart (${formatPrice(1299)})`} />
+                  </div>
                 </div>
               </article>
               <article className="grid grid-cols-3 gap-4 items-center">
@@ -88,6 +90,9 @@ export default function ProductsPage() {
                   <p className="text-sm text-neutral-600">
                     Upgrade your mouse to the latest wireless technology with ultra-low latency polling rates.
                   </p>
+                  <div className="mt-2">
+                    <AddToCartButton id="wireless-dongle" label={`Add To Cart (${formatPrice(2499)})`} />
+                  </div>
                 </div>
               </article>
             </div>
@@ -124,4 +129,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-

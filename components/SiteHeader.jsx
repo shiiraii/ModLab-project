@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useCart } from "../lib/cart/store";
+import AuthMenu from "./AuthMenu";
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const toggle = () => setOpen((o) => !o);
+  const cart = useCart();
 
   return (
     <header className="bg-white/90 sticky top-0 z-50 border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -30,12 +33,10 @@ export default function SiteHeader() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2">
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex rounded-md bg-black text-white text-xs px-3 py-1.5 hover:bg-neutral-800"
-          >
-            Sign In/Register
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline-flex"><AuthMenu /></span>
+          <Link href="/cart" className="text-sm rounded-md border px-3 py-1.5 hover:bg-neutral-50">
+            Cart ({cart.count})
           </Link>
           {/* Mobile menu button */}
           <button
@@ -94,13 +95,13 @@ export default function SiteHeader() {
             <Link href="/about" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 hover:bg-neutral-50">
               About Us
             </Link>
-            <Link href="/login" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 bg-black text-white text-center">
-              Sign In/Register
+            <Link href="/cart" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 hover:bg-neutral-50">
+              Cart ({cart.count})
             </Link>
+            <AuthMenu compact onClickItem={() => setOpen(false)} />
           </div>
         </div>
       </div>
     </header>
   );
 }
-

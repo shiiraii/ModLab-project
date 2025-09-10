@@ -1,6 +1,12 @@
-import "./globals.css";
 import SiteHeader from "../components/SiteHeader";
 import Link from "next/link";
+import "./globals.css";
+import CartProvider from "../components/CartProvider";
+import NewsletterForm from "../components/NewsletterForm";
+import Toaster from "../components/Toaster";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "ModLab",
@@ -15,11 +21,12 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-neutral-100 text-neutral-900 font-sans antialiased">
-        {/* Header / Nav */}
-        <SiteHeader />
+      <body className={`${inter.className} bg-neutral-100 text-neutral-900 antialiased`}>
+        <CartProvider>
+          {/* Header / Nav */}
+          <SiteHeader />
 
-        <main>{children}</main>
+          <main>{children}</main>
 
         {/* Footer */}
         <footer className="mt-16 border-t bg-white">
@@ -49,6 +56,10 @@ export default function RootLayout({ children }) {
                     <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm5 5.5A5.5 5.5 0 1 0 17.5 13 5.51 5.51 0 0 0 12 7.5Zm0 9A3.5 3.5 0 1 1 15.5 13 3.5 3.5 0 0 1 12 16.5Zm6.75-10.88a1.12 1.12 0 1 0 1.12 1.12 1.12 1.12 0 0 0-1.12-1.12Z"/>
                   </svg>
                 </a>
+              </div>
+              <div className="mt-4">
+                <div className="font-medium text-neutral-800">Newsletter</div>
+                <NewsletterForm />
               </div>
             </div>
 
@@ -120,6 +131,8 @@ export default function RootLayout({ children }) {
             © {new Date().getFullYear()} ModLab
           </div>
         </footer>
+        </CartProvider>
+        <Toaster />
       </body>
     </html>
   );
