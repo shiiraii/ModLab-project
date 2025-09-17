@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
@@ -53,7 +53,7 @@ export default function OrderDetailPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <Link href="/account/orders" className="text-sm underline">
-        < Back to orders
+        Back to orders
       </Link>
       <h1 className="mt-2 text-2xl font-semibold">Order #{String(id).slice(0, 8)}</h1>
 
@@ -108,3 +108,4 @@ export default function OrderDetailPage() {
     </div>
   );
 }
+
