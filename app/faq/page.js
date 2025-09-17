@@ -9,10 +9,9 @@ export default function FaqPage() {
         </div>
         <div>
           <div className="font-medium">How long do orders take?</div>
-          <p>Most orders ship within 2–3 business days.</p>
+          <p>Most orders ship within 2-3 business days.</p>
         </div>
       </div>
     </div>
   );
 }
-

@@ -8,7 +8,7 @@ const SERVICES = [
   { id: "switch-replacement", label: "Switch Replacement" },
   { id: "weight-reduction", label: "Weight Reduction Mod" },
   { id: "paracord-upgrade", label: "Paracord Cable Upgrade" },
-  { id: "wireless-conversion", label: "Cable → Wireless Conversion" },
+  { id: "wireless-conversion", label: "Cable to Wireless Conversion" },
   { id: "grip-tape", label: "Grip Tape Application" },
   { id: "skate-install", label: "Skate Install (PTFE/Glass)" },
 ];
@@ -31,13 +31,12 @@ function BookingContent() {
   });
 
   useEffect(() => {
-    // preselect may arrive after first render
     if (preselect) setForm((f) => ({ ...f, service: preselect }));
   }, [preselect]);
 
   useEffect(() => {
     const s = getSupabase();
-    if (!s) return; // allow page to render without crashing if env missing
+    if (!s) return;
     s.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
     const { data: sub } = s.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -86,7 +85,7 @@ function BookingContent() {
       };
       const { error } = await s.from("bookings").insert(payload);
       if (error) throw error;
-      setMsg("Booking request submitted! We’ll email you a confirmation.");
+      setMsg("Booking request submitted! We'll email you a confirmation.");
       setForm({ service: preselect, date: "", time: "", name: "", email: "", phone: "", notes: "" });
     } catch (err) {
       setMsg(err.message ?? "Could not submit booking.");
@@ -104,14 +103,17 @@ function BookingContent() {
 
       {!user && (
         <div className="mt-4 rounded-md border bg-neutral-50 text-neutral-700 text-sm p-3">
-          You’re not signed in. Please sign in on the <a href="/login" className="underline">login page</a> first.
+          You're not signed in. Please sign in on the <a href="/login" className="underline">login page</a> first.
         </div>
       )}
 
       <form onSubmit={submit} className="mt-6 grid grid-cols-1 gap-4">
         <div>
-          <label className="block text-sm text-neutral-700">Service</label>
+          <label className="block text-sm text-neutral-700" htmlFor="service">
+            Service
+          </label>
           <select
+            id="service"
             name="service"
             value={form.service}
             onChange={onChange}
@@ -131,8 +133,11 @@ function BookingContent() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-neutral-700">Date</label>
+            <label className="block text-sm text-neutral-700" htmlFor="date">
+              Date
+            </label>
             <input
+              id="date"
               type="date"
               name="date"
               value={form.date}
@@ -142,8 +147,11 @@ function BookingContent() {
             />
           </div>
           <div>
-            <label className="block text-sm text-neutral-700">Time</label>
+            <label className="block text-sm text-neutral-700" htmlFor="time">
+              Time
+            </label>
             <input
+              id="time"
               type="time"
               name="time"
               value={form.time}
@@ -156,19 +164,26 @@ function BookingContent() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm text-neutral-700">Full name</label>
+            <label className="block text-sm text-neutral-700" htmlFor="name">
+              Full name
+            </label>
             <input
+              id="name"
               name="name"
               value={form.name}
               onChange={onChange}
               required
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white"
               placeholder="Jane Smith"
+              autoComplete="name"
             />
           </div>
           <div>
-            <label className="block text-sm text-neutral-700">Email</label>
+            <label className="block text-sm text-neutral-700" htmlFor="email">
+              Email
+            </label>
             <input
+              id="email"
               type="email"
               name="email"
               value={form.email}
@@ -176,24 +191,32 @@ function BookingContent() {
               required
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white"
               placeholder="you@example.com"
+              autoComplete="email"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm text-neutral-700">Phone</label>
+          <label className="block text-sm text-neutral-700" htmlFor="phone">
+            Phone
+          </label>
           <input
+            id="phone"
             name="phone"
             value={form.phone}
             onChange={onChange}
             className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white"
             placeholder="(555) 555-5555"
+            autoComplete="tel"
           />
         </div>
 
         <div>
-          <label className="block text-sm text-neutral-700">Notes</label>
+          <label className="block text-sm text-neutral-700" htmlFor="notes">
+            Notes
+          </label>
           <textarea
+            id="notes"
             name="notes"
             rows={4}
             value={form.notes}
@@ -208,7 +231,7 @@ function BookingContent() {
           disabled={saving}
           className="rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800 disabled:opacity-60"
         >
-          {saving ? "Submitting…" : "Submit Booking"}
+          {saving ? "Submitting..." : "Submit Booking"}
         </button>
       </form>
 
@@ -219,7 +242,7 @@ function BookingContent() {
 
 export default function BookPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-2xl px-4 py-10">Loading…</div>}>
+    <Suspense fallback={<div className="mx-auto max-w-2xl px-4 py-10">Loading...</div>}>
       <BookingContent />
     </Suspense>
   );

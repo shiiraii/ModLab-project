@@ -1,3 +1,37 @@
+import Image from "next/image";
+import ImageCarousel from "../components/ImageCarousel";
+
+const PARACORD_SLIDES = [
+  {
+    src: "/images/Before-Paracord.jpg",
+    alt: "Mouse with stock cable before paracord upgrade",
+    label: "Before",
+  },
+  {
+    src: "/images/After-Paracord.jpg",
+    alt: "Mouse with flexible paracord cable after upgrade",
+    label: "After",
+  },
+];
+
+const WIRELESS_SLIDES = [
+  {
+    src: "/images/Before-WirelessConversion.jpg",
+    alt: "Mouse before wireless conversion upgrade",
+    label: "Before",
+  },
+  {
+    src: "/images/After-WirelessConversion.jpg",
+    alt: "Mouse converted to wireless with clean exterior",
+    label: "After",
+  },
+  {
+    src: "/images/After-WirelessConversion-Open.jpg",
+    alt: "Interior view of the wireless conversion showing installed components",
+    label: "Inside",
+  },
+];
+
 export default function Home() {
   return (
     <div className="mx-auto max-w-6xl px-4">
@@ -6,9 +40,14 @@ export default function Home() {
         <div className="text-center mb-4 text-sm text-neutral-600">
           ModLab: Custom Mouse Mods & Accessories
         </div>
-        <div className="aspect-[16/9] w-full rounded-md border placeholder-box">
-          {/* Replace with a real image in /public later */}
-          <span className="relative z-10">PLACEHOLDER</span>
+        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-md border">
+          <Image
+            src="/images/homepage-hero.jpg"
+            alt="Custom-modded wireless gaming mouse resting on a wooden desk"
+            fill
+            priority
+            className="object-cover"
+          />
         </div>
       </section>
 
@@ -18,8 +57,14 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1 */}
           <article className="bg-white rounded-md border overflow-hidden transition hover:-translate-y-0.5 hover:shadow-sm">
-            <div className="aspect-[4/3] placeholder-box">
-              <span className="relative z-10 text-sm">PLACEHOLDER</span>
+            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-200">
+              <Image
+                src="/images/weight-reduction.jpg"
+                alt="Hollowed-out mouse shell showing weight reduction mod"
+                fill
+                className="object-cover"
+                sizes="(min-width: 1024px) 20rem, (min-width: 768px) 50vw, 100vw"
+              />
             </div>
             <div className="p-4">
               <h3 className="font-semibold text-sm mb-1">Weight Reduction</h3>
@@ -32,9 +77,11 @@ export default function Home() {
 
           {/* Card 2 */}
           <article className="bg-white rounded-md border overflow-hidden transition hover:-translate-y-0.5 hover:shadow-sm">
-            <div className="aspect-[4/3] placeholder-box">
-              <span className="relative z-10 text-sm">PLACEHOLDER</span>
-            </div>
+            <ImageCarousel
+              images={PARACORD_SLIDES}
+              aspect="aspect-[4/3]"
+              sizes="(min-width: 1024px) 20rem, (min-width: 768px) 50vw, 100vw"
+            />
             <div className="p-4">
               <h3 className="font-semibold text-sm mb-1">Paracord Cable Upgrades</h3>
               <p className="text-sm text-neutral-600">
@@ -45,9 +92,11 @@ export default function Home() {
 
           {/* Card 3 */}
           <article className="bg-white rounded-md border overflow-hidden transition hover:-translate-y-0.5 hover:shadow-sm">
-            <div className="aspect-[4/3] placeholder-box">
-              <span className="relative z-10 text-sm">PLACEHOLDER</span>
-            </div>
+            <ImageCarousel
+              images={WIRELESS_SLIDES}
+              aspect="aspect-[4/3]"
+              sizes="(min-width: 1024px) 20rem, (min-width: 768px) 50vw, 100vw"
+            />
             <div className="p-4">
               <h3 className="font-semibold text-sm mb-1">Cable to Wireless Mod (Custom Order)</h3>
               <p className="text-sm text-neutral-600">
@@ -96,9 +145,15 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Big image on the right */}
-        <div className="aspect-[4/5] rounded-md border placeholder-box">
-          <span className="relative z-10 font-semibold">PLACEHOLDER</span>
+        {/* Accessories image */}
+        <div className="relative aspect-[4/5] rounded-md border overflow-hidden">
+          <Image
+            src="/images/various-accesories.jpg"
+            alt="Selection of ModLab accessories including skates, grip tape, and cables"
+            fill
+            className="object-cover"
+            sizes="(min-width: 1024px) 24rem, 100vw"
+          />
         </div>
       </section>
 
@@ -108,8 +163,14 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card A */}
           <article className="bg-white rounded-md border overflow-hidden">
-            <div className="aspect-[4/3] placeholder-box">
-              <span className="relative z-10 text-sm">PLACEHOLDER</span>
+            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-200">
+              <Image
+                src="/images/switch-replacement.jpg"
+                alt="Top-down view of a custom mouse after switch replacement service"
+                fill
+                className="object-cover"
+                sizes="(min-width: 768px) 50vw, 100vw"
+              />
             </div>
             <div className="p-4">
               <h3 className="font-semibold text-sm mb-1">Switch Replacement Service</h3>
@@ -122,8 +183,14 @@ export default function Home() {
 
           {/* Card B */}
           <article className="bg-white rounded-md border overflow-hidden">
-            <div className="aspect-[4/3] placeholder-box">
-              <span className="relative z-10 text-sm">PLACEHOLDER</span>
+            <div className="relative aspect-[4/3] overflow-hidden bg-neutral-200">
+              <Image
+                src="/images/weight-reduction.jpg"
+                alt="Hollowed-out mouse shell showing weight reduction mod"
+                fill
+                className="object-cover"
+                sizes="(min-width: 768px) 50vw, 100vw"
+              />
             </div>
             <div className="p-4">
               <h3 className="font-semibold text-sm mb-1">Weight Reduction Mod</h3>

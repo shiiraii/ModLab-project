@@ -96,28 +96,36 @@ export default function CheckoutPage() {
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
           <form onSubmit={placeOrder} className="space-y-4">
             <div>
-              <label className="block text-sm text-neutral-700">Full name</label>
-              <input name="name" required className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
+              <label className="block text-sm text-neutral-700" htmlFor="name">
+                Full name
+              </label>
+              <input id="name" name="name" required autoComplete="name" className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
             </div>
             <div>
-              <label className="block text-sm text-neutral-700">Email</label>
-              <input type="email" name="email" required className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
+              <label className="block text-sm text-neutral-700" htmlFor="email">
+                Email
+              </label>
+              <input id="email" type="email" name="email" required autoComplete="email" className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
             </div>
             <div>
-              <label className="block text-sm text-neutral-700">Address</label>
-              <input name="address" required className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
+              <label className="block text-sm text-neutral-700" htmlFor="address">
+                Address
+              </label>
+              <input id="address" name="address" required autoComplete="street-address" className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
             </div>
-            <div className="grid grid-cols-3 gap-4">
-              <input name="city" placeholder="City" required className="rounded-md border px-3 py-2 text-sm bg-white" />
-              <input name="state" placeholder="State" required className="rounded-md border px-3 py-2 text-sm bg-white" />
-              <input name="zip" placeholder="ZIP" required className="rounded-md border px-3 py-2 text-sm bg-white" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <input id="city" name="city" placeholder="City" required autoComplete="address-level2" className="rounded-md border px-3 py-2 text-sm bg-white" />
+              <input id="state" name="state" placeholder="State" required autoComplete="address-level1" className="rounded-md border px-3 py-2 text-sm bg-white" />
+              <input id="zip" name="zip" placeholder="ZIP" required autoComplete="postal-code" className="rounded-md border px-3 py-2 text-sm bg-white" />
             </div>
             <div>
-              <label className="block text-sm text-neutral-700">Card (simulation)</label>
-              <input placeholder="4111 1111 1111 1111" className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
+              <label className="block text-sm text-neutral-700" htmlFor="card">
+                Card (simulation)
+              </label>
+              <input id="card" placeholder="4111 1111 1111 1111" className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
             </div>
             <button disabled={saving} className="rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800 disabled:opacity-60">
-              {saving ? "Placing order…" : `Place Order (${formatPrice(total)})`}
+              {saving ? "Placing order..." : `Place Order (${formatPrice(total)})`}
             </button>
             {msg && <div className="text-sm text-neutral-700">{msg}</div>}
           </form>
@@ -128,7 +136,8 @@ export default function CheckoutPage() {
               {lineItems.map((li) => (
                 <li key={li.id} className="py-2 flex items-center justify-between">
                   <div>
-                    {li.name} × {li.qty}
+                    <div className="font-medium">{li.name}</div>
+                    <div className="text-xs text-neutral-500">Qty {li.qty}</div>
                   </div>
                   <div>{formatPrice(li.unit_price * li.qty)}</div>
                 </li>

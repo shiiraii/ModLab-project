@@ -19,7 +19,8 @@ export default function OrdersPage() {
   useEffect(() => {
     const s = getSupabase();
     if (!s || !user) return;
-    s.from("orders")
+    s
+      .from("orders")
       .select("id, created_at, status, total_cents")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
@@ -39,7 +40,7 @@ export default function OrdersPage() {
       ) : err ? (
         <div className="mt-4 text-sm text-red-600">{err}</div>
       ) : orders === null ? (
-        <div className="mt-4 text-sm text-neutral-600">Loading…</div>
+        <div className="mt-4 text-sm text-neutral-600">Loading...</div>
       ) : orders.length === 0 ? (
         <div className="mt-4 text-sm text-neutral-700">No orders yet.</div>
       ) : (
@@ -51,7 +52,9 @@ export default function OrdersPage() {
                 <div className="text-sm text-neutral-600">{new Date(o.created_at).toLocaleString()}</div>
               </div>
               <div className="text-right">
-                <div className="text-sm">Status: <span className="font-medium capitalize">{o.status}</span></div>
+                <div className="text-sm">
+                  Status: <span className="font-medium capitalize">{o.status}</span>
+                </div>
                 <div className="font-semibold">{formatPrice(o.total_cents)}</div>
               </div>
             </li>
@@ -61,4 +64,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-

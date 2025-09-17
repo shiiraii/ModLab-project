@@ -1,14 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "../lib/cart/store";
 import AuthMenu from "./AuthMenu";
+
+function IconMenu(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true" {...props}>
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function IconClose(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true" {...props}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  );
+}
 
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const toggle = () => setOpen((o) => !o);
   const cart = useCart();
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const { body } = document;
+    const previous = body.style.overflow;
+    body.style.overflow = open ? "hidden" : previous || "";
+    return () => {
+      body.style.overflow = previous || "";
+    };
+  }, [open]);
 
   return (
     <header className="bg-white/90 sticky top-0 z-50 border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
@@ -45,7 +71,7 @@ export default function SiteHeader() {
             onClick={toggle}
             className="sm:hidden inline-flex items-center justify-center w-9 h-9 rounded-md border hover:bg-neutral-50"
           >
-            <span className="i">☰</span>
+            <IconMenu className="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -56,6 +82,7 @@ export default function SiteHeader() {
           open ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-hidden={!open}
+        aria-modal={open}
       >
         {/* Backdrop */}
         <div
@@ -66,7 +93,7 @@ export default function SiteHeader() {
         />
         {/* Panel */}
         <div
-          className={`absolute right-0 top-0 h-full w-72 bg-white border-l shadow-lg p-4 transition-transform duration-200 ${
+          className={`absolute right-0 top-0 h-full w-72 max-w-full bg-white border-l shadow-lg p-4 transition-transform duration-200 overflow-y-auto ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
           role="dialog"
@@ -79,7 +106,7 @@ export default function SiteHeader() {
               className="rounded-md border w-8 h-8 grid place-items-center hover:bg-neutral-50"
               aria-label="Close menu"
             >
-              ×
+              <IconClose className="h-4 w-4" />
             </button>
           </div>
           <div className="mt-4 grid gap-2 text-sm">

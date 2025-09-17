@@ -44,14 +44,19 @@ export default function AdminOrdersPage() {
   }
 
   if (!user) return <div className="mx-auto max-w-4xl px-4 py-10">Please sign in.</div>;
-  if (!isAdmin) return <div className="mx-auto max-w-4xl px-4 py-10">Not authorized. Add role: "admin" in your Supabase user metadata.</div>;
+  if (!isAdmin)
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-10">
+        Not authorized. Add role: "admin" in your Supabase user metadata.
+      </div>
+    );
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="text-2xl font-semibold">All Orders (Admin)</h1>
       {err && <div className="mt-2 text-sm text-red-600">{err}</div>}
       {orders === null ? (
-        <div className="mt-4 text-sm text-neutral-600">Loading…</div>
+        <div className="mt-4 text-sm text-neutral-600">Loading...</div>
       ) : orders.length === 0 ? (
         <div className="mt-4 text-sm text-neutral-700">No orders found.</div>
       ) : (
@@ -64,14 +69,22 @@ export default function AdminOrdersPage() {
               </div>
               <div className="md:col-span-3 font-semibold">{formatPrice(o.total_cents)}</div>
               <div className="md:col-span-2">
-                <select value={o.status} onChange={(e) => updateStatus(o.id, e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-sm bg-white">
+                <select
+                  value={o.status}
+                  onChange={(e) => updateStatus(o.id, e.target.value)}
+                  className="w-full rounded-md border px-2 py-1.5 text-sm bg-white"
+                >
                   {STATUSES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
                   ))}
                 </select>
               </div>
               <div className="md:col-span-2 text-right">
-                <Link href={`/account/orders/${o.id}`} className="text-sm underline">View</Link>
+                <Link href={`/account/orders/${o.id}`} className="text-sm underline">
+                  View
+                </Link>
               </div>
             </li>
           ))}
@@ -80,4 +93,3 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
-
