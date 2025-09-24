@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import AddToCartButton from "../../components/AddToCartButton";
 import { formatPrice } from "../../lib/products/data";
 
@@ -79,8 +79,14 @@ export default function ProductsPage() {
             </div>
           </div>
           <div>
-            <div className="placeholder-box rounded-md border aspect-square">
-              <span className="relative z-10">PLACEHOLDER</span>
+            <div className="relative aspect-square rounded-md border overflow-hidden bg-neutral-200">
+              <Image
+                src="/images/GlassSkates.png"
+                alt="Glass replacement skates displayed on desk"
+                fill
+                className="object-cover"
+                sizes="(min-width: 768px) 24rem, 100vw"
+              />
             </div>
           </div>
         </section>
@@ -110,10 +116,10 @@ export default function ProductsPage() {
             <div className="space-y-6">
               <article className="grid grid-cols-3 gap-4 items-center">
                 <div className="col-span-1">
-                  <div className="relative aspect-[4/3] rounded-md border overflow-hidden bg-neutral-200">
+                  <div className="relative h-32 w-full max-w-[180px] rounded-md border overflow-hidden bg-neutral-200">
                     <Image
-                      src="/images/After-Paracord.jpg"
-                      alt="Paracord mouse cable coiled neatly"
+                      src="/images/ViperMiniParacord.jpg"
+                      alt="Viper Mini replacement paracord cable"
                       fill
                       className="object-cover"
                       sizes="(min-width: 1024px) 12rem, 100vw"
@@ -133,7 +139,7 @@ export default function ProductsPage() {
               </article>
               <article className="grid grid-cols-3 gap-4 items-center">
                 <div className="col-span-1">
-                  <div className="relative aspect-[4/3] rounded-md border overflow-hidden bg-neutral-200">
+                  <div className="relative h-32 w-full max-w-[180px] rounded-md border overflow-hidden bg-neutral-200">
                     <Image
                       src="/images/4k-8k-wireless-dongle.jpg"
                       alt="4K/8K wireless dongle displayed on desk"
@@ -174,3 +180,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+

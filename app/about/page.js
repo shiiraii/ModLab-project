@@ -1,3 +1,5 @@
+﻿import Image from "next/image";
+
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -15,27 +17,30 @@ export default function AboutPage() {
               </p>
             </div>
             <div>
-              <h3 className="font-semibold">Who We Are</h3>
+              <h3 className="font-semibold">Who I Am</h3>
               <p>
-                What started as a small passion project has grown into a service-driven shop
-                dedicated to helping others get the most out of their gear. From replacing
-                worn-out switches to customizing your mouse with lightweight mods, we take pride
-                in offering reliable upgrades backed by careful craftsmanship.
+                I have always been curious about what makes technology perform at its best. That curiosity started when I began tinkering with computer hardware, building PCs, and experimenting with modifications to improve performance and comfort. Over time, that same passion led me to focus on custom mouse modifications, from switch replacements to shell trimming and cable upgrades. Every project I take on is a chance to refine equipment so it not only works better but also feels uniquely personal. At ModLab, my goal is to combine careful craftsmanship with technical precision so that every gamer can enjoy gear that enhances their performance, comfort, and style.
               </p>
             </div>
             <div>
               <h3 className="font-semibold">Why Choose Us</h3>
               <p>
                 We focus on precision, attention to detail, and customer satisfaction. Whether
-                you&apos;re booking a service appointment or purchasing accessories, our goal is to give
+                you are booking a service appointment or purchasing accessories, our goal is to give
                 you a setup that not only works better but feels uniquely yours.
               </p>
             </div>
           </div>
         </div>
         <div className="order-first md:order-none">
-          <div className="placeholder-box rounded-md border aspect-square md:aspect-[4/5]">
-            <span className="relative z-10">PLACEHOLDER</span>
+          <div className="relative aspect-square md:aspect-[4/5] overflow-hidden rounded-md border bg-neutral-200">
+            <Image
+              src="/images/FirstGamingMouse (2).jpg"
+              alt="The first gaming mouse that inspired the ModLab journey"
+              fill
+              className="object-cover"
+              sizes="(min-width: 768px) 28rem, 100vw"
+            />
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import SiteHeader from "../components/SiteHeader";
+﻿import SiteHeader from "../components/SiteHeader";
 import Link from "next/link";
 import "./globals.css";
 import CartProvider from "../components/CartProvider";
@@ -137,3 +137,4 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -35,13 +35,13 @@ const SERVICES = [
     price: "$19.00+",
     gallery: [
       {
-        src: "/images/Before-Paracord.jpg",
-        alt: "Stock mouse cable before paracord upgrade",
+        src: "/images/ViperMiniParacordBefore.jpg",
+        alt: "Viper Mini before paracord upgrade",
         label: "Before",
       },
       {
-        src: "/images/After-Paracord.jpg",
-        alt: "Finished paracord cable upgrade with flexible cable",
+        src: "/images/ViperMiniParacordAfter.jpg",
+        alt: "Viper Mini after paracord upgrade",
         label: "After",
       },
     ],
@@ -61,7 +61,7 @@ const SERVICES = [
       },
       {
         src: "/images/After-WirelessConversion.jpg",
-        alt: "Completed wireless conversion with clean exterior",
+        alt: "Mouse converted to wireless with clean exterior",
         label: "After",
       },
       {

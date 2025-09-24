@@ -1,15 +1,15 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import ImageCarousel from "../components/ImageCarousel";
 
 const PARACORD_SLIDES = [
   {
-    src: "/images/Before-Paracord.jpg",
-    alt: "Mouse with stock cable before paracord upgrade",
+    src: "/images/ViperMiniParacordBefore.jpg",
+    alt: "Viper Mini mouse before paracord cable upgrade",
     label: "Before",
   },
   {
-    src: "/images/After-Paracord.jpg",
-    alt: "Mouse with flexible paracord cable after upgrade",
+    src: "/images/ViperMiniParacordAfter.jpg",
+    alt: "Viper Mini mouse after paracord cable upgrade",
     label: "After",
   },
 ];

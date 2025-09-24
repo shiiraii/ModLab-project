@@ -18,12 +18,12 @@ export default function ImageCarousel({ images = [], aspect = "aspect-[4/3]", si
   const current = images[index];
 
   return (
-    <div className={`relative overflow-hidden rounded-md bg-neutral-200 ${aspect} ${className}`}>
+    <div className={`group relative overflow-hidden rounded-md bg-black ${aspect} ${className}`}>
       <Image
         src={current.src}
         alt={current.alt ?? "Service preview"}
         fill
-        className="object-cover"
+        className="object-contain"
         sizes={current.sizes ?? sizes}
         priority={priority}
       />
@@ -31,19 +31,25 @@ export default function ImageCarousel({ images = [], aspect = "aspect-[4/3]", si
         <>
           <button
             type="button"
-            onClick={() => go(-1)}
-            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80"
+            onClick={(e) => {
+              e.stopPropagation();
+              go(-1);
+            }}
+            className="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
             aria-label="Previous image"
           >
-            â€¹
+            <span aria-hidden>{"<"}</span>
           </button>
           <button
             type="button"
-            onClick={() => go(1)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/60 px-2 py-1 text-xs text-white hover:bg-black/80"
+            onClick={(e) => {
+              e.stopPropagation();
+              go(1);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
             aria-label="Next image"
           >
-            â€º
+            <span aria-hidden>{">"}</span>
           </button>
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1">
             {images.map((_, i) => (
