@@ -78,7 +78,7 @@ export default function SiteHeader() {
 
       {/* Drawer */}
       <div
-        className={`sm:hidden fixed inset-0 z-[1100] transition ${
+        className={`sm:hidden fixed inset-0 max-w-full z-[1100] transition ${
           open ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-hidden={!open}
