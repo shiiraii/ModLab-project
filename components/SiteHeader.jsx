@@ -37,7 +37,7 @@ export default function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="bg-white/90 sticky top-0 z-50 border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header className="bg-white/90 sticky top-0 z-[70] border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-semibold">
           ModLab
@@ -78,7 +78,7 @@ export default function SiteHeader() {
 
       {/* Drawer */}
       <div
-        className={`sm:hidden fixed inset-0 z-50 transition ${
+        className={`sm:hidden fixed inset-0 z-[80] transition ${
           open ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-hidden={!open}
@@ -93,7 +93,7 @@ export default function SiteHeader() {
         />
         {/* Panel */}
         <div
-          className={`absolute right-0 top-0 h-full w-72 max-w-full bg-white border-l shadow-lg p-4 transition-transform duration-200 overflow-y-auto ${
+          className={`absolute right-0 top-0 h-full w-72 max-w-full bg-white border-l shadow-2xl p-4 transition-transform duration-200 overflow-y-auto ${
             open ? "translate-x-0" : "translate-x-full"
           }`}
           role="dialog"
