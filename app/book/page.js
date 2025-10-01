@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -13,10 +13,13 @@ const SERVICES = [
   { id: "skate-install", label: "Skate Install (PTFE/Glass)" },
 ];
 
+const LOCAL_KEY = "modlab_bookings_v1";
+
 function BookingContent() {
   const params = useSearchParams();
   const preselect = params.get("service") ?? "";
   const [user, setUser] = useState(null);
+  const [supabaseReady, setSupabaseReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
 
@@ -37,6 +40,7 @@ function BookingContent() {
   useEffect(() => {
     const s = getSupabase();
     if (!s) return;
+    setSupabaseReady(true);
     s.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
     const { data: sub } = s.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -59,33 +63,53 @@ function BookingContent() {
   async function submit(e) {
     e.preventDefault();
     setMsg(null);
-    if (!user) {
-      setMsg("Please sign in to book an appointment.");
-      return;
-    }
     if (!appointmentISO) {
       setMsg("Please choose a valid date and time.");
       return;
     }
     setSaving(true);
     try {
-      const s = getSupabase();
-      if (!s) {
-        setMsg("Supabase env vars are not set. Add them to .env and Vercel.");
-        return;
-      }
+      const supabase = getSupabase();
+      const canPersistRemotely = Boolean(supabase && user);
       const payload = {
-        user_id: user.id,
+        id: Date.now(),
+        user_id: user?.id ?? "guest",
         service_id: form.service || null,
         name: form.name,
         email: form.email,
         phone: form.phone,
         notes: form.notes,
         appointment_at: appointmentISO,
+        created_at: new Date().toISOString(),
+        status: "pending",
       };
-      const { error } = await s.from("bookings").insert(payload);
-      if (error) throw error;
-      setMsg("Booking request submitted! We'll email you a confirmation.");
+
+      if (canPersistRemotely) {
+        const { error } = await supabase
+          .from("bookings")
+          .insert({
+            user_id: payload.user_id,
+            service_id: payload.service_id,
+            name: payload.name,
+            email: payload.email,
+            phone: payload.phone,
+            notes: payload.notes,
+            appointment_at: payload.appointment_at,
+          });
+        if (error) throw error;
+        setMsg("Booking request submitted! We'll email you a confirmation.");
+      } else {
+        try {
+          const raw = localStorage.getItem(LOCAL_KEY);
+          const entries = raw ? JSON.parse(raw) : [];
+          entries.push(payload);
+          localStorage.setItem(LOCAL_KEY, JSON.stringify(entries));
+        } catch {
+          // Ignore storage errors - preview mode fallback.
+        }
+        setMsg("Booking request saved! We'll confirm the details soon (preview mode).");
+      }
+
       setForm({ service: preselect, date: "", time: "", name: "", email: "", phone: "", notes: "" });
     } catch (err) {
       setMsg(err.message ?? "Could not submit booking.");
@@ -98,12 +122,17 @@ function BookingContent() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-2xl font-semibold">Book Appointment</h1>
       <p className="mt-2 text-neutral-600 text-sm">
-        Choose a service and preferred time. You must be signed in to submit.
+        Choose a service and preferred time. We'll follow up with confirmation once your request is received.
       </p>
 
-      {!user && (
-        <div className="mt-4 rounded-md border bg-neutral-50 text-neutral-700 text-sm p-3">
-          You're not signed in. Please sign in on the <a href="/login" className="underline">login page</a> first.
+      {!supabaseReady && (
+        <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
+          You're viewing the front-end preview. Submissions are stored locally so you can demo the flow without configuring Supabase yet.
+        </div>
+      )}
+      {supabaseReady && !user && (
+        <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
+          You're not signed in. You can still submit to preview the booking experience or <a href="/login" className="underline">sign in</a> to sync with Supabase.
         </div>
       )}
 
@@ -131,7 +160,7 @@ function BookingContent() {
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-sm text-neutral-700" htmlFor="date">
               Date
@@ -162,7 +191,7 @@ function BookingContent() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-sm text-neutral-700" htmlFor="name">
               Full name

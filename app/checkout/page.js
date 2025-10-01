@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -20,15 +20,16 @@ function getLineItems(items) {
 export default function CheckoutPage() {
   const cart = useCart();
   const router = useRouter();
+  const supabase = getSupabase();
+  const supabaseAvailable = Boolean(supabase);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const s = getSupabase();
-    if (!s) return;
-    s.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
-  }, []);
+    if (!supabase) return;
+    supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
+  }, [supabase]);
 
   const lineItems = useMemo(() => getLineItems(cart.items), [cart.items]);
   const total = lineItems.reduce((n, li) => n + li.unit_price * li.qty, 0);
@@ -53,9 +54,8 @@ export default function CheckoutPage() {
       };
 
       let orderId = undefined;
-      const s = getSupabase();
-      if (s && user) {
-        const { data, error } = await s
+      if (supabase && user) {
+        const { data, error } = await supabase
           .from("orders")
           .insert({
             user_id: user.id,
@@ -71,10 +71,14 @@ export default function CheckoutPage() {
       } else {
         // Fallback local simulation
         orderId = `local_${Date.now()}`;
-        const raw = localStorage.getItem("modlab_orders_v1");
-        const orders = raw ? JSON.parse(raw) : [];
-        orders.push({ id: orderId, status: "processing", total_cents: total, items: lineItems, created_at: new Date().toISOString() });
-        localStorage.setItem("modlab_orders_v1", JSON.stringify(orders));
+        try {
+          const raw = localStorage.getItem("modlab_orders_v1");
+          const orders = raw ? JSON.parse(raw) : [];
+          orders.push({ id: orderId, status: "processing", total_cents: total, items: lineItems, created_at: new Date().toISOString(), shipping });
+          localStorage.setItem("modlab_orders_v1", JSON.stringify(orders));
+        } catch {
+          // Ignore storage errors in simulation mode.
+        }
       }
 
       cart.clear();
@@ -90,10 +94,15 @@ export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
       <h1 className="text-2xl font-semibold">Checkout</h1>
+      {!supabaseAvailable && (
+        <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
+          This is the front-end preview. Orders are saved locally so you can demonstrate checkout before wiring up Supabase.
+        </div>
+      )}
       {lineItems.length === 0 ? (
         <div className="mt-6 text-neutral-600 text-sm">Your cart is empty.</div>
       ) : (
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <form onSubmit={placeOrder} className="space-y-4">
             <div>
               <label className="block text-sm text-neutral-700" htmlFor="name">
@@ -113,7 +122,7 @@ export default function CheckoutPage() {
               </label>
               <input id="address" name="address" required autoComplete="street-address" className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <input id="city" name="city" placeholder="City" required autoComplete="address-level2" className="rounded-md border px-3 py-2 text-sm bg-white" />
               <input id="state" name="state" placeholder="State" required autoComplete="address-level1" className="rounded-md border px-3 py-2 text-sm bg-white" />
               <input id="zip" name="zip" placeholder="ZIP" required autoComplete="postal-code" className="rounded-md border px-3 py-2 text-sm bg-white" />

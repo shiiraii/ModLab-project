@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import ImageCarousel from "../../components/ImageCarousel";
+import BeforeAfterSlider from "../../components/BeforeAfterSlider";
 
 const SERVICES = [
   {
@@ -33,18 +34,10 @@ const SERVICES = [
     details:
       "We replace the stock cable, route strain relief, and validate sensor tracking.",
     price: "$19.00+",
-    gallery: [
-      {
-        src: "/images/ViperMiniParacordBefore.jpg",
-        alt: "Viper Mini before paracord upgrade",
-        label: "Before",
-      },
-      {
-        src: "/images/ViperMiniParacordAfter.jpg",
-        alt: "Viper Mini after paracord upgrade",
-        label: "After",
-      },
-    ],
+    beforeAfter: {
+      before: { src: "/images/ViperMiniParacordBefore.jpg", alt: "Mouse before paracord upgrade" },
+      after: { src: "/images/ViperMiniParacordAfter.jpg", alt: "Mouse after paracord upgrade" },
+    },
   },
   {
     id: "wireless-conversion",
@@ -101,7 +94,12 @@ function CloseIcon(props) {
   );
 }
 
-function ServiceIllustration({ image, gallery, alt, sizes = "100vw", priority = false }) {
+function ServiceIllustration({ image, gallery, beforeAfter, alt, sizes = "100vw", priority = false }) {
+  if (beforeAfter) {
+    return (
+      <BeforeAfterSlider before={beforeAfter.before} after={beforeAfter.after} aspect="aspect-[4/3]" />
+    );
+  }
   if (gallery?.length) {
     const slides = gallery.map((item) => ({
       src: item.src,
@@ -170,6 +168,7 @@ export default function ServicesPage() {
             <ServiceIllustration
               image={s.image}
               gallery={s.gallery}
+              beforeAfter={s.beforeAfter}
               alt={s.alt}
               sizes="(min-width: 1024px) 20rem, (min-width: 640px) 50vw, 100vw"
             />
@@ -190,6 +189,7 @@ export default function ServicesPage() {
             <ServiceIllustration
               image={active.image}
               gallery={active.gallery}
+              beforeAfter={active.beforeAfter}
               alt={active.alt}
               sizes="(min-width: 768px) 640px, 92vw"
               priority

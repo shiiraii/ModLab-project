@@ -13,6 +13,8 @@ const SERVICE_LABELS = {
   "skate-install": "Skate Install (PTFE/Glass)",
 };
 
+const LOCAL_KEY = "modlab_bookings_v1";
+
 export default function BookingTrackerPage() {
   const [form, setForm] = useState({ email: "", reference: "" });
   const [loading, setLoading] = useState(false);
@@ -42,7 +44,27 @@ export default function BookingTrackerPage() {
 
     const supabase = getSupabase();
     if (!supabase) {
-      setError("Tracking requires Supabase. Configure env vars before deploying.");
+      setLoading(true);
+      try {
+        const raw = localStorage.getItem(LOCAL_KEY);
+        const stored = raw ? JSON.parse(raw) : [];
+        const ref = form.reference.trim();
+        const matches = stored.filter((booking) => {
+          const emailMatch = (booking.email || "").toLowerCase() === email;
+          const refMatch = !ref ? true : String(booking.id) === ref;
+          return emailMatch && refMatch;
+        });
+        if (matches.length === 0) {
+          setError("We couldn't find any preview bookings for that email yet.");
+          setBookings([]);
+        } else {
+          setBookings(matches);
+        }
+      } catch {
+        setError("Unable to read stored preview bookings in this browser.");
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -61,7 +83,7 @@ export default function BookingTrackerPage() {
       const { data, error } = await query;
       if (error) throw error;
       if (!data || data.length === 0) {
-        setError("We couldn\'t find any bookings for that email. Double-check your spelling or use another email.");
+        setError("We couldn't find any bookings for that email. Double-check your spelling or use another email.");
         setBookings([]);
       } else {
         setBookings(data);
