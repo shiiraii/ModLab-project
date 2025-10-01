@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { useCart } from "../lib/cart/store";
 import AuthMenu from "./AuthMenu";
@@ -21,6 +22,71 @@ function IconClose(props) {
   );
 }
 
+function MobileDrawer({ open, onClose, cartCount }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      className={`sm:hidden fixed inset-0 z-[1400] transition ${
+        open ? "pointer-events-auto" : "pointer-events-none"
+      }`}
+      aria-hidden={!open}
+      aria-modal={open}
+    >
+      <div
+        onClick={onClose}
+        className={`absolute inset-0 bg-black/40 transition-opacity ${
+          open ? "opacity-100" : "opacity-0"
+        }`}
+      />
+      <div
+        className={`absolute right-0 top-0 h-full w-[min(18rem,90vw)] bg-white border-l shadow-2xl transition-transform duration-200 overflow-y-auto ${
+          open ? "translate-x-0" : "translate-x-full"
+        }`}
+        role="dialog"
+        aria-label="Navigation Menu"
+      >
+        <div className="flex items-center justify-between h-12 px-4">
+          <div className="font-semibold">Menu</div>
+          <button
+            onClick={onClose}
+            className="rounded-md border w-8 h-8 grid place-items-center hover:bg-neutral-50"
+            aria-label="Close menu"
+          >
+            <IconClose className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="px-4 pb-6 grid gap-2 text-sm">
+          <Link href="/" onClick={onClose} className="rounded-md px-2 py-2 hover:bg-neutral-50">
+            Home
+          </Link>
+          <Link href="/services" onClick={onClose} className="rounded-md px-2 py-2 hover:bg-neutral-50">
+            Services
+          </Link>
+          <Link href="/products" onClick={onClose} className="rounded-md px-2 py-2 hover:bg-neutral-50">
+            Products
+          </Link>
+          <Link href="/about" onClick={onClose} className="rounded-md px-2 py-2 hover:bg-neutral-50">
+            About Us
+          </Link>
+          <Link href="/cart" onClick={onClose} className="rounded-md px-2 py-2 hover:bg-neutral-50">
+            Cart ({cartCount})
+          </Link>
+          <AuthMenu compact onClickItem={onClose} />
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 export default function SiteHeader() {
   const [open, setOpen] = useState(false);
   const toggle = () => setOpen((o) => !o);
@@ -37,7 +103,7 @@ export default function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="bg-white/90 sticky top-0 z-[1000] border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header className="bg-white/90 sticky top-0 z-[120] border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-semibold">
           ModLab
@@ -76,59 +142,7 @@ export default function SiteHeader() {
         </div>
       </div>
 
-      {/* Drawer */}
-      <div
-        className={`sm:hidden fixed inset-0 max-w-full z-[1100] transition ${
-          open ? "pointer-events-auto" : "pointer-events-none"
-        }`}
-        aria-hidden={!open}
-        aria-modal={open}
-      >
-        {/* Backdrop */}
-        <div
-          onClick={() => setOpen(false)}
-          className={`absolute inset-0 bg-black/40 transition-opacity ${
-            open ? "opacity-100" : "opacity-0"
-          }`}
-        />
-        {/* Panel */}
-        <div
-          className={`absolute right-0 top-0 h-full w-72 max-w-full bg-white border-l shadow-2xl p-4 transition-transform duration-200 overflow-y-auto ${
-            open ? "translate-x-0" : "translate-x-full"
-          }`}
-          role="dialog"
-          aria-label="Navigation Menu"
-        >
-          <div className="flex items-center justify-between h-10">
-            <div className="font-semibold">Menu</div>
-            <button
-              onClick={() => setOpen(false)}
-              className="rounded-md border w-8 h-8 grid place-items-center hover:bg-neutral-50"
-              aria-label="Close menu"
-            >
-              <IconClose className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="mt-4 grid gap-2 text-sm">
-            <Link href="/" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 hover:bg-neutral-50">
-              Home
-            </Link>
-            <Link href="/services" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 hover:bg-neutral-50">
-              Services
-            </Link>
-            <Link href="/products" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 hover:bg-neutral-50">
-              Products
-            </Link>
-            <Link href="/about" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 hover:bg-neutral-50">
-              About Us
-            </Link>
-            <Link href="/cart" onClick={() => setOpen(false)} className="rounded-md px-2 py-2 hover:bg-neutral-50">
-              Cart ({cart.count})
-            </Link>
-            <AuthMenu compact onClickItem={() => setOpen(false)} />
-          </div>
-        </div>
-      </div>
+      <MobileDrawer open={open} onClose={() => setOpen(false)} cartCount={cart.count} />
     </header>
   );
 }
