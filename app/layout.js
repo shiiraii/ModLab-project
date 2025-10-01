@@ -21,7 +21,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-neutral-100 text-neutral-900 antialiased`}>
+      <body className={`${inter.className} bg-neutral-100 text-neutral-900 antialiased overflow-x-hidden`}>
         <CartProvider>
           {/* Header / Nav */}
           <SiteHeader />

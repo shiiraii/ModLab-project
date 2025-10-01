@@ -37,7 +37,7 @@ export default function SiteHeader() {
   }, [open]);
 
   return (
-    <header className="bg-white/90 sticky top-0 z-[70] border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <header className="bg-white/90 sticky top-0 z-[1000] border-b backdrop-blur supports-[backdrop-filter]:bg-white/80">
       <div className="mx-auto max-w-6xl px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-semibold">
           ModLab
@@ -78,7 +78,7 @@ export default function SiteHeader() {
 
       {/* Drawer */}
       <div
-        className={`sm:hidden fixed inset-0 z-[80] transition ${
+        className={`sm:hidden fixed inset-0 z-[1100] transition ${
           open ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-hidden={!open}
