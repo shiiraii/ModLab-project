@@ -25,8 +25,8 @@ export default function BookingTrackerPage() {
     if (!bookings) return [];
     return bookings.map((booking) => ({
       ...booking,
-      prettyService: SERVICE_LABELS[booking.service_id] ?? booking.service_id ?? "Service",
-      appointment_at: booking.appointment_at ? new Date(booking.appointment_at) : null,
+      prettyService: SERVICE_LABELS[booking.service_slug] ?? booking.service_slug ?? "Service",
+      appointment_at: booking.scheduled_for ? new Date(booking.scheduled_for) : null,
       created_at: booking.created_at ? new Date(booking.created_at) : null,
     }));
   }, [bookings]);
@@ -49,11 +49,13 @@ export default function BookingTrackerPage() {
         const raw = localStorage.getItem(LOCAL_KEY);
         const stored = raw ? JSON.parse(raw) : [];
         const ref = form.reference.trim();
-        const matches = stored.filter((booking) => {
-          const emailMatch = (booking.email || "").toLowerCase() === email;
-          const refMatch = !ref ? true : String(booking.id) === ref;
-          return emailMatch && refMatch;
-        });
+        const matches = stored
+          .filter((booking) => booking.table === "booking_requests")
+          .filter((booking) => {
+            const emailMatch = (booking.email || "").toLowerCase() === email;
+            const refMatch = !ref ? true : String(booking.id) === ref;
+            return emailMatch && refMatch;
+          });
         if (matches.length === 0) {
           setError("We couldn't find any preview bookings for that email yet.");
           setBookings([]);
@@ -71,10 +73,10 @@ export default function BookingTrackerPage() {
     setLoading(true);
     try {
       let query = supabase
-        .from("bookings")
-        .select("id, service_id, status, appointment_at, created_at, notes")
+        .from("booking_requests")
+        .select("id, service_slug, status, scheduled_for, created_at, notes")
         .eq("email", email)
-        .order("appointment_at", { ascending: true });
+        .order("scheduled_for", { ascending: true });
       const ref = form.reference.trim();
       if (ref) {
         const refNumber = Number(ref);

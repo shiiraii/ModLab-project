@@ -33,8 +33,15 @@ export default function NewsletterForm() {
         setEmail("");
         return;
       }
-      const { error } = await supabase.from("newsletter_subscribers").insert({ email });
-      if (error) throw error;
+      const { error } = await supabase.from("newsletter_signups").insert({ email });
+      if (error) {
+        if (error.code === "23505") {
+          setStatus("You're already subscribed with that email.");
+          toast("Already subscribed");
+          return;
+        }
+        throw error;
+      }
       setStatus("Thanks for subscribing!");
       toast("Subscribed to newsletter");
       setEmail("");

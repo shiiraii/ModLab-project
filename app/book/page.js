@@ -70,31 +70,31 @@ function BookingContent() {
     setSaving(true);
     try {
       const supabase = getSupabase();
-      const canPersistRemotely = Boolean(supabase && user);
+      const canPersistRemotely = Boolean(supabase);
       const payload = {
         id: Date.now(),
         user_id: user?.id ?? "guest",
-        service_id: form.service || null,
-        name: form.name,
+        service_slug: form.service || null,
+        full_name: form.name,
         email: form.email,
         phone: form.phone,
         notes: form.notes,
-        appointment_at: appointmentISO,
+        scheduled_for: appointmentISO,
         created_at: new Date().toISOString(),
         status: "pending",
       };
 
       if (canPersistRemotely) {
         const { error } = await supabase
-          .from("bookings")
+          .from("booking_requests")
           .insert({
-            user_id: payload.user_id,
-            service_id: payload.service_id,
-            name: payload.name,
-            email: payload.email,
-            phone: payload.phone,
-            notes: payload.notes,
-            appointment_at: payload.appointment_at,
+            user_id: user?.id ?? null,
+            service_slug: form.service || null,
+            full_name: form.name,
+            email: form.email,
+            phone: form.phone || null,
+            notes: form.notes || null,
+            scheduled_for: appointmentISO,
           });
         if (error) throw error;
         setMsg("Booking request submitted! We'll email you a confirmation.");
@@ -102,7 +102,7 @@ function BookingContent() {
         try {
           const raw = localStorage.getItem(LOCAL_KEY);
           const entries = raw ? JSON.parse(raw) : [];
-          entries.push(payload);
+          entries.push({ ...payload, table: "booking_requests" });
           localStorage.setItem(LOCAL_KEY, JSON.stringify(entries));
         } catch {
           // Ignore storage errors - preview mode fallback.
@@ -122,7 +122,7 @@ function BookingContent() {
     <div className="mx-auto max-w-2xl px-4 py-10">
       <h1 className="text-2xl font-semibold">Book Appointment</h1>
       <p className="mt-2 text-neutral-600 text-sm">
-        Choose a service and preferred time. We'll follow up with confirmation once your request is received.
+        Choose a service and preferred time. We'll follow up with confirmation once your request is received. Submissions are stored securely in Supabase.
       </p>
 
       {!supabaseReady && (
