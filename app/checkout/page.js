@@ -33,6 +33,7 @@ export default function CheckoutPage() {
 
   const lineItems = useMemo(() => getLineItems(cart.items), [cart.items]);
   const total = lineItems.reduce((n, li) => n + li.unit_price * li.qty, 0);
+  const canPersistToSupabase = supabaseAvailable && Boolean(user);
 
   async function placeOrder(e) {
     e.preventDefault();
@@ -54,7 +55,7 @@ export default function CheckoutPage() {
       };
 
       let orderId = undefined;
-      if (supabase && user) {
+      if (canPersistToSupabase) {
         const { data, error } = await supabase
           .from("orders")
           .insert({
@@ -99,6 +100,11 @@ export default function CheckoutPage() {
           This is the front-end preview. Orders are saved locally so you can demonstrate checkout before wiring up Supabase.
         </div>
       )}
+      {supabaseAvailable && !user && (
+        <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
+          Sign in before checking out so we can save your order to your ModLab account.
+        </div>
+      )}
       {lineItems.length === 0 ? (
         <div className="mt-6 text-neutral-600 text-sm">Your cart is empty.</div>
       ) : (
@@ -133,7 +139,10 @@ export default function CheckoutPage() {
               </label>
               <input id="card" placeholder="4111 1111 1111 1111" className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white" />
             </div>
-            <button disabled={saving} className="rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800 disabled:opacity-60">
+            <button
+              disabled={saving || (supabaseAvailable && !user)}
+              className="rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800 disabled:opacity-60"
+            >
               {saving ? "Placing order..." : `Place Order (${formatPrice(total)})`}
             </button>
             {msg && <div className="text-sm text-neutral-700">{msg}</div>}
