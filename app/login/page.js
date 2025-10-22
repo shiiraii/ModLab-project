@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase/client";
 
 export default function LoginPage() {
@@ -8,8 +9,25 @@ export default function LoginPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+  const router = useRouter();
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  async function ensureProfile(supabase, user, fullName) {
+    if (!user) return;
+    try {
+      const profileName = fullName || form.name || user.email;
+      await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          full_name: profileName,
+        },
+        { onConflict: "id" }
+      );
+    } catch (error) {
+      console.warn("Unable to upsert profile", error);
+    }
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -28,15 +46,20 @@ export default function LoginPage() {
           options: { data: { full_name: form.name } },
         });
         if (error) throw error;
-        setMessage("Account created. Please check your email to verify.");
+        const { data } = await supabase.auth.getUser();
+        await ensureProfile(supabase, data?.user ?? null, form.name);
+        setMessage("Account created. You're signed in and your profile has been saved.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email: form.email,
           password: form.password,
         });
         if (error) throw error;
+        const { data } = await supabase.auth.getUser();
+        await ensureProfile(supabase, data?.user ?? null);
         setMessage("Signed in successfully.");
       }
+      router.push("/account/profile");
     } catch (err) {
       setMessage(err.message ?? "Something went wrong.");
     } finally {

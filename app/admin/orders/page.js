@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -9,13 +9,23 @@ const STATUSES = ["processing", "shipped", "delivered"];
 
 export default function AdminOrdersPage() {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [orders, setOrders] = useState(null);
   const [err, setErr] = useState(null);
 
   useEffect(() => {
     const s = getSupabase();
     if (!s) return;
-    s.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
+    s.auth.getUser().then(async ({ data }) => {
+      const nextUser = data?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        const { data: profile } = await s.from("profiles").select("role").eq("id", nextUser.id).maybeSingle();
+        setIsAdmin(profile?.role === "admin");
+      } else {
+        setIsAdmin(false);
+      }
+    });
   }, []);
 
   async function load() {
@@ -30,10 +40,12 @@ export default function AdminOrdersPage() {
   }
 
   useEffect(() => {
-    load();
-  }, [user]);
-
-  const isAdmin = user?.user_metadata?.role === "admin";
+    if (isAdmin) {
+      load();
+    } else {
+      setOrders(null);
+    }
+  }, [user, isAdmin]);
 
   async function updateStatus(id, status) {
     const s = getSupabase();
@@ -47,7 +59,7 @@ export default function AdminOrdersPage() {
   if (!isAdmin)
     return (
       <div className="mx-auto max-w-4xl px-4 py-10">
-        Not authorized. Add role: "admin" in your Supabase user metadata.
+        Not authorized. Set your profile role to "admin" in Supabase.
       </div>
     );
 

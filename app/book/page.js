@@ -22,6 +22,7 @@ function BookingContent() {
   const [supabaseReady, setSupabaseReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   const [form, setForm] = useState({
     service: preselect,
@@ -41,9 +42,33 @@ function BookingContent() {
     const s = getSupabase();
     if (!s) return;
     setSupabaseReady(true);
-    s.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
-    const { data: sub } = s.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    s.auth.getUser().then(async ({ data }) => {
+      const nextUser = data?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        const { data: profileRow } = await s.from("profiles").select("full_name").eq("id", nextUser.id).maybeSingle();
+        setProfile(profileRow ?? null);
+        setForm((f) => ({
+          ...f,
+          name: profileRow?.full_name || nextUser.user_metadata?.full_name || nextUser.email || f.name,
+          email: nextUser.email || f.email,
+        }));
+      }
+    });
+    const { data: sub } = s.auth.onAuthStateChange(async (_event, session) => {
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      if (nextUser) {
+        const { data: profileRow } = await s.from("profiles").select("full_name").eq("id", nextUser.id).maybeSingle();
+        setProfile(profileRow ?? null);
+        setForm((f) => ({
+          ...f,
+          name: profileRow?.full_name || nextUser.user_metadata?.full_name || nextUser.email || f.name,
+          email: nextUser.email || f.email,
+        }));
+      } else {
+        setProfile(null);
+      }
     });
     return () => sub?.subscription?.unsubscribe();
   }, []);
@@ -70,7 +95,7 @@ function BookingContent() {
     setSaving(true);
     try {
       const supabase = getSupabase();
-      const canPersistRemotely = Boolean(supabase);
+      const canPersistRemotely = Boolean(supabase && user);
       const payload = {
         id: Date.now(),
         user_id: user?.id ?? "guest",
@@ -110,7 +135,15 @@ function BookingContent() {
         setMsg("Booking request saved! We'll confirm the details soon (preview mode).");
       }
 
-      setForm({ service: preselect, date: "", time: "", name: "", email: "", phone: "", notes: "" });
+      setForm({
+        service: preselect,
+        date: "",
+        time: "",
+        name: profile?.full_name || user?.user_metadata?.full_name || user?.email || "",
+        email: user?.email || "",
+        phone: "",
+        notes: "",
+      });
     } catch (err) {
       setMsg(err.message ?? "Could not submit booking.");
     } finally {
@@ -128,6 +161,11 @@ function BookingContent() {
       {!supabaseReady && (
         <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
           You're viewing the front-end preview. Submissions are stored locally so you can demo the flow without configuring Supabase yet.
+        </div>
+      )}
+      {supabaseReady && !user && (
+        <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
+          Please sign in before booking so we can save your appointment to your ModLab account.
         </div>
       )}
       {supabaseReady && !user && (
@@ -257,7 +295,7 @@ function BookingContent() {
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || (supabaseReady && !user)}
           className="rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800 disabled:opacity-60"
         >
           {saving ? "Submitting..." : "Submit Booking"}

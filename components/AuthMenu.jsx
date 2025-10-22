@@ -7,12 +7,29 @@ import { getSupabase } from "../lib/supabase/client";
 
 export default function AuthMenu({ compact = false, onClickItem }) {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     const s = getSupabase();
     if (!s) return;
-    s.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
-    const { data: sub } = s.auth.onAuthStateChange((_e, session) => setUser(session?.user ?? null));
+    async function hydrate(nextUser) {
+      if (nextUser) {
+        const { data: profileRow } = await s.from("profiles").select("full_name, role").eq("id", nextUser.id).maybeSingle();
+        setProfile(profileRow ?? null);
+      } else {
+        setProfile(null);
+      }
+    }
+    s.auth.getUser().then(async ({ data }) => {
+      const nextUser = data?.user ?? null;
+      setUser(nextUser);
+      await hydrate(nextUser);
+    });
+    const { data: sub } = s.auth.onAuthStateChange(async (_e, session) => {
+      const nextUser = session?.user ?? null;
+      setUser(nextUser);
+      await hydrate(nextUser);
+    });
     return () => sub?.subscription?.unsubscribe();
   }, []);
 
@@ -28,7 +45,7 @@ export default function AuthMenu({ compact = false, onClickItem }) {
     );
   }
 
-  const name = user.user_metadata?.full_name || user.email;
+  const name = profile?.full_name || user.user_metadata?.full_name || user.email;
 
   const router = useRouter();
   async function signOut() {
@@ -44,6 +61,9 @@ export default function AuthMenu({ compact = false, onClickItem }) {
         <Link href="/account/orders" onClick={onClickItem} className="rounded-md px-2 py-2 hover:bg-neutral-50">
           My Orders
         </Link>
+        <Link href="/account/bookings" onClick={onClickItem} className="rounded-md px-2 py-2 hover:bg-neutral-50">
+          My Bookings
+        </Link>
         <button onClick={signOut} className="text-left rounded-md px-2 py-2 hover:bg-neutral-50">Sign out</button>
       </div>
     );
@@ -53,6 +73,7 @@ export default function AuthMenu({ compact = false, onClickItem }) {
     <div className="flex items-center gap-2">
       <span className="hidden md:inline text-sm text-neutral-700">Hi, {name}</span>
       <Link href="/account/orders" className="rounded-md border text-xs px-3 py-1.5 hover:bg-neutral-50">My Orders</Link>
+      <Link href="/account/bookings" className="rounded-md border text-xs px-3 py-1.5 hover:bg-neutral-50">My Bookings</Link>
       <button onClick={signOut} className="rounded-md border text-xs px-3 py-1.5 hover:bg-neutral-50">Sign out</button>
     </div>
   );

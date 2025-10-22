@@ -14,10 +14,13 @@ export default function ProfilePage() {
   useEffect(() => {
     const s = getSupabase();
     if (!s) return;
-    s.auth.getUser().then(({ data }) => {
+    s.auth.getUser().then(async ({ data }) => {
       const u = data?.user ?? null;
       setUser(u);
-      setName(u?.user_metadata?.full_name || "");
+      if (u) {
+        const { data: profile } = await s.from("profiles").select("full_name").eq("id", u.id).maybeSingle();
+        setName(profile?.full_name || u.user_metadata?.full_name || "");
+      }
     });
   }, []);
 
@@ -27,8 +30,8 @@ export default function ProfilePage() {
     setMsg(null);
     try {
       const s = getSupabase();
-      const { error } = await s?.auth.updateUser({ data: { full_name: name } });
-      if (error) throw error;
+      await s.from("profiles").upsert({ id: user.id, full_name: name });
+      await s.auth.updateUser({ data: { full_name: name } });
       setMsg("Saved");
     } catch (err) {
       setMsg(err.message ?? "Could not save");
@@ -63,4 +66,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
