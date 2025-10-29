@@ -1,18 +1,25 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../../lib/cart/store";
-import { PRODUCTS, formatPrice } from "../../lib/products/data";
+import { formatPrice } from "../../lib/products/data";
 import { getSupabase } from "../../lib/supabase/client";
 import { toast } from "../../lib/ui/toast";
+import { useProductCatalog } from "../../lib/products/catalog";
 
-function getLineItems(items) {
+function getLineItems(items, productMap) {
   return items
     .map((it) => {
-      const product = PRODUCTS.find((p) => p.id === it.id);
+      const product = productMap.get(it.id);
       if (!product) return null;
-      return { id: product.id, name: product.name, unit_price: product.price, qty: it.qty };
+      return {
+        id: product.id,
+        name: product.name,
+        unit_price: product.price,
+        qty: it.qty,
+        product,
+      };
     })
     .filter(Boolean);
 }
@@ -25,13 +32,14 @@ export default function CheckoutPage() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
   const [user, setUser] = useState(null);
+  const { productMap, loading: productsLoading } = useProductCatalog();
 
   useEffect(() => {
     if (!supabase) return;
     supabase.auth.getUser().then(({ data }) => setUser(data?.user ?? null));
   }, [supabase]);
 
-  const lineItems = useMemo(() => getLineItems(cart.items), [cart.items]);
+  const lineItems = useMemo(() => getLineItems(cart.items, productMap), [cart.items, productMap]);
   const total = lineItems.reduce((n, li) => n + li.unit_price * li.qty, 0);
   const canPersistToSupabase = supabaseAvailable && Boolean(user);
 
@@ -55,6 +63,7 @@ export default function CheckoutPage() {
       };
 
       let orderId = undefined;
+      const payloadItems = lineItems.map(({ id, name, unit_price, qty }) => ({ id, name, unit_price, qty }));
       if (canPersistToSupabase) {
         const { data, error } = await supabase
           .from("orders")
@@ -62,7 +71,7 @@ export default function CheckoutPage() {
             user_id: user.id,
             status: "processing",
             total_cents: total,
-            items: lineItems,
+            items: payloadItems,
             shipping,
           })
           .select("id")
@@ -75,7 +84,14 @@ export default function CheckoutPage() {
         try {
           const raw = localStorage.getItem("modlab_orders_v1");
           const orders = raw ? JSON.parse(raw) : [];
-          orders.push({ id: orderId, status: "processing", total_cents: total, items: lineItems, created_at: new Date().toISOString(), shipping });
+          orders.push({
+            id: orderId,
+            status: "processing",
+            total_cents: total,
+            items: payloadItems,
+            created_at: new Date().toISOString(),
+            shipping,
+          });
           localStorage.setItem("modlab_orders_v1", JSON.stringify(orders));
         } catch {
           // Ignore storage errors in simulation mode.
@@ -105,6 +121,7 @@ export default function CheckoutPage() {
           Sign in before checking out so we can save your order to your ModLab account.
         </div>
       )}
+      {productsLoading && <div className="mt-4 text-xs text-neutral-600">Syncing product catalog...</div>}
       {lineItems.length === 0 ? (
         <div className="mt-6 text-neutral-600 text-sm">Your cart is empty.</div>
       ) : (
@@ -156,6 +173,11 @@ export default function CheckoutPage() {
                   <div>
                     <div className="font-medium">{li.name}</div>
                     <div className="text-xs text-neutral-500">Qty {li.qty}</div>
+                    {typeof li.product.stock === "number" && (
+                      <div className="text-xs text-neutral-500">
+                        {li.product.stock <= 0 ? "Sold out" : `In stock: ${li.product.stock}`}
+                      </div>
+                    )}
                   </div>
                   <div>{formatPrice(li.unit_price * li.qty)}</div>
                 </li>

@@ -2,16 +2,14 @@
 
 import Link from "next/link";
 import { useCart } from "../../lib/cart/store";
-import { PRODUCTS, formatPrice } from "../../lib/products/data";
-
-function resolveProduct(id) {
-  return PRODUCTS.find((p) => p.id === id);
-}
+import { formatPrice } from "../../lib/products/data";
+import { useProductCatalog } from "../../lib/products/catalog";
 
 export default function CartPage() {
   const cart = useCart();
+  const { productMap, loading } = useProductCatalog();
   const enriched = cart.items
-    .map((it) => ({ ...it, product: resolveProduct(it.id) }))
+    .map((it) => ({ ...it, product: productMap.get(it.id) }))
     .filter((it) => it.product);
   const subtotal = enriched.reduce((n, it) => n + it.product.price * it.qty, 0);
 
@@ -24,21 +22,33 @@ export default function CartPage() {
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-6">
+          {loading && <div className="text-xs text-neutral-500">Syncing live inventory...</div>}
           <ul className="divide-y rounded-md border bg-white">
             {enriched.map((it) => (
               <li key={it.id} className="p-4 flex items-center justify-between gap-4">
                 <div>
                   <div className="font-medium">{it.product.name}</div>
                   <div className="text-sm text-neutral-600">{formatPrice(it.product.price)}</div>
+                  {typeof it.product.stock === "number" && (
+                    <div className="mt-1 text-xs text-neutral-500">
+                      {it.product.stock <= 0
+                        ? "Sold out"
+                        : `In stock: ${it.product.stock}`}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <input
                     type="number"
                     min={1}
+                    max={typeof it.product.stock === "number" && it.product.stock > 0 ? it.product.stock : undefined}
                     value={it.qty}
                     onChange={(e) => cart.setQty(it.id, Math.max(1, Number(e.target.value || 1)))}
                     className="w-16 rounded-md border px-2 py-1 text-sm"
                   />
+                  {typeof it.product.stock === "number" && it.product.stock > 0 && it.qty > it.product.stock && (
+                    <div className="text-xs text-red-600">Reduce quantity (only {it.product.stock} available)</div>
+                  )}
                   <button onClick={() => cart.remove(it.id)} className="text-sm rounded-md border px-3 py-1.5 hover:bg-neutral-50">
                     Remove
                   </button>
@@ -64,4 +74,3 @@ export default function CartPage() {
     </div>
   );
 }
-

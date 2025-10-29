@@ -1,63 +1,11 @@
-﻿'use client';
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import AddToCartButton from "../../components/AddToCartButton";
 import { formatPrice } from "../../lib/products/data";
-
-const PRODUCT_DATA = [
-  {
-    id: "ptfe-skates",
-    name: "PTFE Skates",
-    price: 1099,
-    description: "Durable skates designed for smooth, frictionless movement on any mouse pad.",
-    image: "/images/PTFE-skates.jpg",
-    category: "skates",
-    highlight: "primary",
-  },
-  {
-    id: "glass-skates",
-    name: "Glass Skates",
-    price: 1499,
-    description: "Premium glass skates for maximum glide and long-lasting durability.",
-    image: "/images/GlassSkates.png",
-    category: "skates",
-    highlight: "secondary",
-  },
-  {
-    id: "grip-tape",
-    name: "Grip Tape Set",
-    price: 799,
-    description: "Anti-slip textured grip tape to keep your aim steady during long sessions.",
-    image: "/images/grip-tape.jpg",
-    category: "accessories",
-  },
-  {
-    id: "paracord-cable",
-    name: "Paracord Mouse Cable",
-    price: 1299,
-    description: "Ultra-flexible, lightweight cable that eliminates drag and keeps your mouse feeling wireless.",
-    image: "/images/ViperMiniParacord.jpg",
-    category: "cables",
-  },
-  {
-    id: "wireless-dongle",
-    name: "4K/8K Wireless Dongle",
-    price: 2499,
-    description: "Upgrade to the latest low-latency wireless tech with support for ultra-high polling rates.",
-    image: "/images/4k-8k-wireless-dongle.jpg",
-    category: "wireless",
-  },
-];
-
-const FILTERS = [
-  { id: "all", label: "All" },
-  { id: "skates", label: "Skates" },
-  { id: "cables", label: "Cables" },
-  { id: "wireless", label: "Wireless" },
-  { id: "accessories", label: "Accessories" },
-];
+import { useProductCatalog } from "../../lib/products/catalog";
 
 const FEATURE_ITEMS = [
   {
@@ -78,13 +26,19 @@ const FEATURE_ITEMS = [
   },
 ];
 
+function titleCase(text) {
+  return text
+    .replace(/[-_]/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function FilterPill({ label, active, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`rounded-full border px-4 py-1.5 text-sm transition ${
-        active ? 'border-black bg-black text-white' : 'border-neutral-300 text-neutral-700 hover:border-black/50'
+        active ? "border-black bg-black text-white" : "border-neutral-300 text-neutral-700 hover:border-black/50"
       }`}
     >
       {label}
@@ -105,13 +59,30 @@ function ProductSkeleton() {
   );
 }
 
+function StockBadge({ stock }) {
+  if (typeof stock !== "number") return null;
+  if (stock <= 0) {
+    return <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700">Sold out</span>;
+  }
+  if (stock <= 5) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+        Only {stock} left
+      </span>
+    );
+  }
+  return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">In stock</span>;
+}
+
 function ProductCard({ product }) {
+  const hasStock = typeof product.stock === "number";
+  const soldOut = hasStock && product.stock <= 0;
   return (
     <motion.article
       layout
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
       className="flex h-full flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white"
     >
       <div className="relative aspect-square overflow-hidden bg-neutral-100">
@@ -126,45 +97,97 @@ function ProductCard({ product }) {
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="font-semibold text-sm text-neutral-900">{product.name}</h3>
+            <h3 className="text-lg font-semibold text-neutral-900">{product.name}</h3>
             <p className="mt-1 text-sm text-neutral-600">{product.description}</p>
           </div>
-          <span className="rounded-full bg-neutral-900 px-2 py-1 text-xs font-medium text-white">
-            {formatPrice(product.price)}
-          </span>
+          <div className="text-sm font-semibold text-neutral-900">{formatPrice(product.price)}</div>
         </div>
-        <div className="mt-auto pt-4">
-          <AddToCartButton id={product.id} label={`Add To Cart (${formatPrice(product.price)})`} className="w-full justify-center" />
+        <div className="mt-4 flex-1">
+          <div className="flex items-center justify-between text-xs text-neutral-500">
+            <div>{product.category ? titleCase(product.category) : "Accessory"}</div>
+            <StockBadge stock={product.stock} />
+          </div>
+        </div>
+        <div className="mt-4">
+          <AddToCartButton
+            id={product.id}
+            label={soldOut ? "Sold Out" : `Add To Cart (${formatPrice(product.price)})`}
+            className="w-full justify-center"
+            disabled={soldOut}
+          />
         </div>
       </div>
     </motion.article>
   );
 }
 
-export default function ProductsPage() {
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all");
-  const [products, setProducts] = useState([]);
+function HeroProduct({ product, delay = 0 }) {
+  if (!product) return <div className="h-40 animate-pulse rounded-lg border border-white/10 bg-white/10" />;
+  const hasStock = typeof product.stock === "number";
+  const soldOut = hasStock && product.stock <= 0;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay }}
+      className="rounded-lg border border-white/10 bg-white/5 p-6 backdrop-blur"
+    >
+      <div className="flex flex-col gap-4 md:flex-row md:items-center">
+        <div className="relative h-32 w-full overflow-hidden rounded md:w-40">
+          <Image src={product.image} alt={product.name} fill className="object-cover" sizes="(min-width: 768px) 10rem, 100vw" />
+        </div>
+        <div className="space-y-2 text-left">
+          <div className="text-sm uppercase tracking-wide text-neutral-300">Featured</div>
+          <h2 className="text-xl font-semibold text-white">{product.name}</h2>
+          <p className="text-sm text-neutral-300">{product.description}</p>
+          <div className="flex items-center gap-2 text-xs text-neutral-200">
+            <StockBadge stock={product.stock} />
+            <span>{formatPrice(product.price)}</span>
+          </div>
+          <AddToCartButton
+            id={product.id}
+            label={soldOut ? "Sold Out" : `Add (${formatPrice(product.price)})`}
+            disabled={soldOut}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setProducts(PRODUCT_DATA);
-      setLoading(false);
-    }, 650);
-    return () => clearTimeout(timer);
-  }, []);
+export default function ProductsPage() {
+  const { products, loading, source } = useProductCatalog();
+  const [filter, setFilter] = useState("all");
+
+  const filters = useMemo(() => {
+    const byCategory = new Map();
+    products.forEach((product) => {
+      if (!product.category) return;
+      byCategory.set(product.category, titleCase(product.category));
+    });
+    return [
+      { id: "all", label: "All" },
+      ...Array.from(byCategory, ([id, label]) => ({ id, label })),
+    ];
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     if (filter === "all") return products;
     return products.filter((item) => item.category === filter);
   }, [products, filter]);
 
-  const heroPrimary = products.find((item) => item.highlight === "primary");
-  const heroSecondary = products.find((item) => item.highlight === "secondary");
+  const heroPrimary = useMemo(() => {
+    return products.find((item) => item.highlight === "primary") ?? products[0] ?? null;
+  }, [products]);
+
+  const heroSecondary = useMemo(() => {
+    return products.find((item) => item.highlight === "secondary") ?? products[1] ?? null;
+  }, [products]);
+
+  const isFallback = source === "fallback";
 
   return (
     <div>
-      {/* Hero */}
       <section className="bg-black text-white">
         <div className="mx-auto max-w-6xl px-4 py-16">
           {loading ? (
@@ -179,7 +202,7 @@ export default function ProductsPage() {
                 ModLab Accessories
               </motion.h1>
               <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="mt-3 text-sm md:text-base text-neutral-300">
-                Everything you need to dial in your mouse—skates, cables, grips, and high-speed wireless upgrades.
+                Everything you need to dial in your mouse-skates, cables, grips, and high-speed wireless upgrades.
               </motion.p>
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.18 }} className="mt-6 inline-flex gap-3">
                 <a href="#shop" className="rounded-md bg-white px-4 py-2 text-sm font-medium text-neutral-900">
@@ -192,35 +215,22 @@ export default function ProductsPage() {
             </div>
           )}
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {(loading ? [null, null] : [heroPrimary, heroSecondary]).map((item, index) => (
-              item ? (
-                <motion.div key={item.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.1 * index }} className="rounded-lg border border-white/10 bg-white/5 p-6 backdrop-blur">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                    <div className="relative h-32 w-full overflow-hidden rounded md:w-40">
-                      <Image src={item.image} alt={item.name} fill className="object-cover" sizes="(min-width: 768px) 10rem, 100vw" />
-                    </div>
-                    <div className="space-y-2 text-left">
-                      <div className="text-sm uppercase tracking-wide text-neutral-300">Featured</div>
-                      <h2 className="text-xl font-semibold text-white">{item.name}</h2>
-                      <p className="text-sm text-neutral-300">{item.description}</p>
-                      <AddToCartButton id={item.id} label={`Add (${formatPrice(item.price)})`} />
-                    </div>
-                  </div>
-                </motion.div>
-              ) : (
-                <div key={`skeleton-${index}`} className="h-40 animate-pulse rounded-lg border border-white/10 bg-white/10" />
-              )
-            ))}
+            <HeroProduct product={loading ? null : heroPrimary} />
+            <HeroProduct product={loading ? null : heroSecondary} delay={0.05} />
           </div>
+          {isFallback && (
+            <div className="mt-6 rounded-md border border-white/10 bg-white/5 p-4 text-sm text-neutral-200">
+              Live inventory updates appear here once Supabase environment variables are configured.
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Filter & Grid */}
       <section id="shop" className="mx-auto max-w-6xl px-4 py-12">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-semibold">Shop the lineup</h2>
           <div className="flex flex-wrap gap-2">
-            {FILTERS.map((item) => (
+            {filters.map((item) => (
               <FilterPill key={item.id} label={item.label} active={filter === item.id} onClick={() => setFilter(item.id)} />
             ))}
           </div>
@@ -238,14 +248,13 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* Features */}
       <section className="mx-auto max-w-6xl px-4 pb-16">
         <h2 className="text-2xl font-semibold">Why ModLab</h2>
         <div className="mt-6 grid grid-cols-1 gap-6 text-sm md:grid-cols-2 lg:grid-cols-4">
           {FEATURE_ITEMS.map((feature, index) => (
             <div key={feature.title} className="rounded-lg border border-neutral-200 bg-white p-5">
               <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
-                {(index + 1).toString().padStart(2, '0')}
+                {(index + 1).toString().padStart(2, "0")}
               </div>
               <div className="font-medium text-neutral-900">{feature.title}</div>
               <p className="mt-2 text-neutral-600">{feature.description}</p>
