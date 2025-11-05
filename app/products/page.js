@@ -71,7 +71,11 @@ function StockBadge({ stock }) {
       </span>
     );
   }
-  return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">In stock</span>;
+  return (
+    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700">
+      In stock: {stock}
+    </span>
+  );
 }
 
 function ProductCard({ product }) {
