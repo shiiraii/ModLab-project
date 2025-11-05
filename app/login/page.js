@@ -16,14 +16,13 @@ export default function LoginPage() {
   async function ensureProfile(supabase, user, fullName) {
     if (!user) return;
     try {
-      const profileName = fullName || form.name || user.email;
-      await supabase.from("profiles").upsert(
-        {
-          id: user.id,
-          full_name: profileName,
-        },
-        { onConflict: "id" }
-      );
+      const submittedName = (fullName ?? form.name)?.trim();
+      const payload = { id: user.id };
+      if (submittedName) {
+        payload.full_name = submittedName;
+        await supabase.auth.updateUser({ data: { full_name: submittedName } });
+      }
+      await supabase.from("profiles").upsert(payload, { onConflict: "id" });
     } catch (error) {
       console.warn("Unable to upsert profile", error);
     }

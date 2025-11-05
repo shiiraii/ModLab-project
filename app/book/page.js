@@ -20,6 +20,7 @@ function BookingContent() {
   const preselect = params.get("service") ?? "";
   const [user, setUser] = useState(null);
   const [supabaseReady, setSupabaseReady] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -54,6 +55,7 @@ function BookingContent() {
           email: nextUser.email || f.email,
         }));
       }
+      setAuthLoading(false);
     });
     const { data: sub } = s.auth.onAuthStateChange(async (_event, session) => {
       const nextUser = session?.user ?? null;
@@ -69,6 +71,7 @@ function BookingContent() {
       } else {
         setProfile(null);
       }
+      setAuthLoading(false);
     });
     return () => sub?.subscription?.unsubscribe();
   }, []);
@@ -163,12 +166,12 @@ function BookingContent() {
           You're viewing the front-end preview. Submissions are stored locally so you can demo the flow without configuring Supabase yet.
         </div>
       )}
-      {supabaseReady && !user && (
+      {supabaseReady && !user && !authLoading && (
         <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
           Please sign in before booking so we can save your appointment to your ModLab account.
         </div>
       )}
-      {supabaseReady && !user && (
+      {supabaseReady && !user && !authLoading && (
         <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
           You're not signed in. You can still submit to preview the booking experience or <a href="/login" className="underline">sign in</a> to sync with Supabase.
         </div>
@@ -295,7 +298,7 @@ function BookingContent() {
 
         <button
           type="submit"
-          disabled={saving || (supabaseReady && !user)}
+          disabled={saving}
           className="rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800 disabled:opacity-60"
         >
           {saving ? "Submitting..." : "Submit Booking"}
