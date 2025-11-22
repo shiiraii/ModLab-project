@@ -159,10 +159,17 @@ export default function ServicesPage() {
       {/* Grid */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {SERVICES.map((s) => (
-          <button
+          <div
             key={s.id}
-            type="button"
+            role="button"
+            tabIndex={0}
             onClick={() => show(s)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                show(s);
+              }
+            }}
             className="text-left bg-white rounded-md border overflow-hidden hover:shadow-sm hover:-translate-y-0.5 transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-black/40"
           >
             <ServiceIllustration
@@ -177,7 +184,7 @@ export default function ServicesPage() {
               <div className="mt-1 text-sm text-neutral-600">{s.blurb}</div>
               <div className="mt-2 text-xs text-neutral-500">Starting at {s.price}</div>
             </div>
-          </button>
+          </div>
         ))}
       </div>
 

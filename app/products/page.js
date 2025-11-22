@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import AddToCartButton from "../../components/AddToCartButton";
 import { formatPrice } from "../../lib/products/data";
@@ -89,19 +90,23 @@ function ProductCard({ product }) {
       transition={{ duration: 0.35, ease: "easeOut" }}
       className="flex h-full flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white"
     >
-      <div className="relative aspect-square overflow-hidden bg-neutral-100">
+      <Link href={`/products/${product.id}`} className="relative block aspect-square overflow-hidden bg-neutral-100">
         <Image
           src={product.image}
           alt={product.name}
           fill
-          className="object-cover"
+          className="object-cover transition duration-200 hover:scale-105"
           sizes="(min-width: 1024px) 16rem, (min-width: 768px) 33vw, 100vw"
         />
-      </div>
+      </Link>
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold text-neutral-900">{product.name}</h3>
+            <h3 className="text-lg font-semibold text-neutral-900">
+              <Link href={`/products/${product.id}`} className="hover:underline">
+                {product.name}
+              </Link>
+            </h3>
             <p className="mt-1 text-sm text-neutral-600">{product.description}</p>
           </div>
           <div className="text-sm font-semibold text-neutral-900">{formatPrice(product.price)}</div>
@@ -113,6 +118,9 @@ function ProductCard({ product }) {
           </div>
         </div>
         <div className="mt-4">
+          <Link href={`/products/${product.id}`} className="mb-2 inline-block text-sm font-medium text-neutral-900 underline">
+            View details
+          </Link>
           <AddToCartButton
             id={product.id}
             label={soldOut ? "Sold Out" : `Add To Cart (${formatPrice(product.price)})`}

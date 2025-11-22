@@ -13,8 +13,6 @@ const SERVICE_LABELS = {
   "skate-install": "Skate Install (PTFE/Glass)",
 };
 
-const LOCAL_KEY = "modlab_bookings_v1";
-
 export default function BookingTrackerPage() {
   const [form, setForm] = useState({ email: "", reference: "" });
   const [loading, setLoading] = useState(false);
@@ -44,29 +42,7 @@ export default function BookingTrackerPage() {
 
     const supabase = getSupabase();
     if (!supabase) {
-      setLoading(true);
-      try {
-        const raw = localStorage.getItem(LOCAL_KEY);
-        const stored = raw ? JSON.parse(raw) : [];
-        const ref = form.reference.trim();
-        const matches = stored
-          .filter((booking) => booking.table === "booking_requests")
-          .filter((booking) => {
-            const emailMatch = (booking.email || "").toLowerCase() === email;
-            const refMatch = !ref ? true : String(booking.id) === ref;
-            return emailMatch && refMatch;
-          });
-        if (matches.length === 0) {
-          setError("We couldn't find any preview bookings for that email yet.");
-          setBookings([]);
-        } else {
-          setBookings(matches);
-        }
-      } catch {
-        setError("Unable to read stored preview bookings in this browser.");
-      } finally {
-        setLoading(false);
-      }
+      setError("Booking lookup requires Supabase. Add your Supabase URL and key to enable tracking.");
       return;
     }
 

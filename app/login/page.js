@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getSupabase } from "../../lib/supabase/client";
 import { getSiteUrl } from "../../lib/site-url";
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const router = useRouter();
+  const supabase = useMemo(() => getSupabase(), []);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -20,7 +21,6 @@ export default function LoginPage() {
     setLoading(true);
     setMessage(null);
     try {
-      const supabase = getSupabase();
       if (!supabase) {
         setMessage("Supabase env vars are not set. Add them to .env and Vercel.");
         return;
@@ -47,7 +47,12 @@ export default function LoginPage() {
       }
       router.push("/account/profile");
     } catch (err) {
-      setMessage(err.message ?? "Something went wrong.");
+      const msg = err?.message ?? "Something went wrong.";
+      if (msg.toLowerCase().includes("fetch") || msg.toLowerCase().includes("load failed")) {
+        setMessage("Could not reach Supabase. Check your internet and Supabase URL/key.");
+      } else {
+        setMessage(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -61,6 +66,11 @@ export default function LoginPage() {
           ? "Register with your name, email and a password."
           : "Enter your email and password to continue."}
       </p>
+      {!supabase && (
+        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          Supabase is not configured, so authentication is disabled until env vars are set.
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         {mode === "signup" && (

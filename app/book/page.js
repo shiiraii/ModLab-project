@@ -13,11 +13,12 @@ const SERVICES = [
   { id: "skate-install", label: "Skate Install (PTFE/Glass)" },
 ];
 
-const LOCAL_KEY = "modlab_bookings_v1";
+const TIME_SLOTS = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
 
 function BookingContent() {
   const params = useSearchParams();
   const preselect = params.get("service") ?? "";
+  const supabase = useMemo(() => getSupabase(), []);
   const [user, setUser] = useState(null);
   const [supabaseReady, setSupabaseReady] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
@@ -40,7 +41,7 @@ function BookingContent() {
   }, [preselect]);
 
   useEffect(() => {
-    const s = getSupabase();
+    const s = supabase;
     if (!s) return;
     setSupabaseReady(true);
     s.auth.getUser().then(async ({ data }) => {
@@ -74,7 +75,7 @@ function BookingContent() {
       setAuthLoading(false);
     });
     return () => sub?.subscription?.unsubscribe();
-  }, []);
+  }, [supabase]);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
@@ -91,52 +92,33 @@ function BookingContent() {
   async function submit(e) {
     e.preventDefault();
     setMsg(null);
+    if (!supabase) {
+      setMsg("Bookings require Supabase. Add your Supabase keys to enable scheduling.");
+      return;
+    }
+    if (!user) {
+      setMsg("Please sign in before booking so we can save your appointment.");
+      return;
+    }
     if (!appointmentISO) {
-      setMsg("Please choose a valid date and time.");
+      setMsg("Please choose a valid date and time within our booking hours.");
       return;
     }
     setSaving(true);
     try {
-      const supabase = getSupabase();
-      const canPersistRemotely = Boolean(supabase && user);
-      const payload = {
-        id: Date.now(),
-        user_id: user?.id ?? "guest",
-        service_slug: form.service || null,
-        full_name: form.name,
-        email: form.email,
-        phone: form.phone,
-        notes: form.notes,
-        scheduled_for: appointmentISO,
-        created_at: new Date().toISOString(),
-        status: "pending",
-      };
-
-      if (canPersistRemotely) {
-        const { error } = await supabase
-          .from("booking_requests")
-          .insert({
-            user_id: user?.id ?? null,
-            service_slug: form.service || null,
-            full_name: form.name,
-            email: form.email,
-            phone: form.phone || null,
-            notes: form.notes || null,
-            scheduled_for: appointmentISO,
-          });
-        if (error) throw error;
-        setMsg("Booking request submitted! We'll email you a confirmation.");
-      } else {
-        try {
-          const raw = localStorage.getItem(LOCAL_KEY);
-          const entries = raw ? JSON.parse(raw) : [];
-          entries.push({ ...payload, table: "booking_requests" });
-          localStorage.setItem(LOCAL_KEY, JSON.stringify(entries));
-        } catch {
-          // Ignore storage errors - preview mode fallback.
-        }
-        setMsg("Booking request saved! We'll confirm the details soon (preview mode).");
-      }
+      const { error } = await supabase
+        .from("booking_requests")
+        .insert({
+          user_id: user?.id ?? null,
+          service_slug: form.service || null,
+          full_name: form.name,
+          email: form.email,
+          phone: form.phone || null,
+          notes: form.notes || null,
+          scheduled_for: appointmentISO,
+        });
+      if (error) throw error;
+      setMsg("Booking request submitted! We'll email you a confirmation.");
 
       setForm({
         service: preselect,
@@ -161,19 +143,14 @@ function BookingContent() {
         Choose a service and preferred time. We'll follow up with confirmation once your request is received. Submissions are stored securely in Supabase.
       </p>
 
-      {!supabaseReady && (
+      {!supabase && (
         <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
-          You're viewing the front-end preview. Submissions are stored locally so you can demo the flow without configuring Supabase yet.
+          Booking requires Supabase configuration. Add your Supabase URL and anon key to enable scheduling.
         </div>
       )}
       {supabaseReady && !user && !authLoading && (
         <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
           Please sign in before booking so we can save your appointment to your ModLab account.
-        </div>
-      )}
-      {supabaseReady && !user && !authLoading && (
-        <div className="mt-4 rounded-md border bg-neutral-50 p-3 text-sm text-neutral-700">
-          You're not signed in. You can still submit to preview the booking experience or <a href="/login" className="underline">sign in</a> to sync with Supabase.
         </div>
       )}
 
@@ -213,6 +190,7 @@ function BookingContent() {
               value={form.date}
               onChange={onChange}
               required
+              min={new Date().toISOString().split("T")[0]}
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white"
             />
           </div>
@@ -220,15 +198,23 @@ function BookingContent() {
             <label className="block text-sm text-neutral-700" htmlFor="time">
               Time
             </label>
-            <input
+            <select
               id="time"
-              type="time"
               name="time"
               value={form.time}
               onChange={onChange}
               required
               className="mt-1 w-full rounded-md border px-3 py-2 text-sm bg-white"
-            />
+            >
+              <option value="" disabled>
+                Select a time slot
+              </option>
+              {TIME_SLOTS.map((slot) => (
+                <option key={slot} value={slot}>
+                  {slot} (local time)
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -298,7 +284,7 @@ function BookingContent() {
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || !supabase || !user}
           className="rounded-md bg-black text-white text-sm px-4 py-2 hover:bg-neutral-800 disabled:opacity-60"
         >
           {saving ? "Submitting..." : "Submit Booking"}
